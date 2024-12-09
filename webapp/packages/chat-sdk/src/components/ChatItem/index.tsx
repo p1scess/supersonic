@@ -557,3 +557,109 @@ const ChatItem: React.FC<Props> = ({
 };
 
 export default ChatItem;
+
+// [
+//   {
+//     "crawl_time": 1733106972825,
+//     "departdatetime": "2024-12-09 14:10:00",
+//     "arrivedatetime": "2024-12-09 18:10:00",
+//     "departpoint_citycode": "HKG",
+//     "departpoint_cityname": "香港",
+//     "departpoint_airportcode": "HKG",
+//     "arrivepoint_cityname": "新加坡",
+//     "arrivepoint_citycode": "SIN",
+//     "arrivepoint_airportcode": "SIN",
+//     "flightno": "SQ883",
+//     "airlinecode": "SQ",
+//     "airlinename": "新加坡航空",
+//     "price_totalprice": 7975,
+//     "price_averageprice": 7975,
+//     "price_totaltax": 449.0,
+//     "crawl_type": "PC",
+//     "demand_id": 229971,
+//     "type": "通用",
+//     "uuid": "46bad7de-08d6-4b7b-94ee-a0ede6bb208b",
+//     "day": 20241202
+//   },
+//   {
+//     "crawl_time": 1733106973299,
+//     "departdatetime": "2024-12-09 19:20:00",
+//     "arrivedatetime": "2024-12-10 05:39:59",
+//     "departpoint_citycode": "SIN",
+//     "departpoint_cityname": "新加坡",
+//     "departpoint_airportcode": "SIN",
+//     "arrivepoint_cityname": "墨爾本",
+//     "arrivepoint_citycode": "MEL",
+//     "arrivepoint_airportcode": "MEL",
+//     "flightno": "SQ247",
+//     "airlinecode": "SQ",
+//     "airlinename": "新加坡航空",
+//     "price_totalprice": 7975,
+//     "price_averageprice": 7975,
+//     "price_totaltax": 449.0,
+//     "crawl_type": "PC",
+//     "demand_id": 229971,
+//     "type": "通用",
+//     "uuid": "46bad7de-08d6-4b7b-94ee-a0ede6bb208b",
+//     "day": 20241202
+//   }
+// ]
+
+// {
+//   "crawl_time": 1733106972825,
+//   "departdatetime": "2024-12-09 14:10:00",
+//   "arrivedatetime": "2024-12-10 05:39:59",
+//   "departpoint_citycode": "HKG",
+//   "departpoint_cityname": "香港",
+//   "departpoint_airportcode": "HKG",
+//   "arrivepoint_cityname": "墨爾本",
+//   "arrivepoint_citycode": "SIN",
+//   "arrivepoint_airportcode": "SIN",
+//   "flightno": ["SQ883", "SQ247"],
+//   "airlinecode": ["SQ", "SQ"],
+//   "airlinename": ["新加坡航空", "新加坡航空"],
+//   "price_totalprice": 7975,
+//   "price_averageprice": 7975,
+//   "price_totaltax": 449.0,
+//   "crawl_type": "PC",
+//   "demand_id": 229971,
+//   "type": "通用",
+//   "uuid": "46bad7de-08d6-4b7b-94ee-a0ede6bb208b",
+//   "day": 20241202
+// }
+
+function mergeFlightData(dataArray) {
+  // 使用uuid作为key来分组数据
+  const groupedData = dataArray.reduce((acc, curr) => {
+    if (!acc[curr.uuid]) {
+      acc[curr.uuid] = [];
+    }
+    acc[curr.uuid].push(curr);
+    return acc;
+  }, {});
+
+  // 处理每个分组的数据
+  return Object.values(groupedData).map(group => {
+    if (group.length === 1) {
+      return group[0];
+    }
+
+    // 首先按departdatetime排序
+    group.sort((a, b) => {
+      return new Date(a.departdatetime) - new Date(b.departdatetime);
+    });
+
+    const lastItem = group[group.length - 1];
+
+    return {
+      ...group[0],
+      flightno: group.map(item => item.flightno).join(','),
+      airlinecode: group.map(item => item.airlinecode).join(','),
+      airlinename: group.map(item => item.airlinename).join(','),
+      arrivedatetime: lastItem.arrivedatetime,
+      arrivepoint_cityname: lastItem.arrivepoint_cityname,
+      arrivepoint_citycode: lastItem.arrivepoint_citycode,
+      arrivepoint_airportcode: lastItem.arrivepoint_airportcode,
+    };
+  });
+}
